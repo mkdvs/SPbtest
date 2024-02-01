@@ -19,7 +19,7 @@ index_data_sofi = index_data_sofi.bfill()
 price_data_sofi = np.log(price_data / price_data.shift(1))
 price_data_sofi = price_data_sofi.bfill()
 
-# now need 6 month moving average of index and each stock to begin building our indicator....I think?
+# now need 6 month moving average of index and each stock to begin building our indicator.
 
 index_6mma = index_data_sofi.rolling(window=6).mean()
 price_6mma = price_data_sofi.rolling(window=6).mean()
@@ -27,10 +27,21 @@ price_6mma = price_data_sofi.rolling(window=6).mean()
 # Divide each column in price_6mma by the single column in index_6mma
 # The division will automatically broadcast across the columns
 ratio_6mma = price_6mma.divide(index_6mma['indexsofi'], axis=0)
-# drop first 5 rows as they will always be NaN due to rolling mean above
+# drop first 5 rows as they will always be NaN due to rolling mean above.  This is our indicator for backtesting..I hope.
 ratio_6mma = ratio_6mma.iloc[5:]
 
-print(ratio_6mma)
+# lets dump everyting to a spreadsheet to spot check numbers/calculations manually
+
+with pd.ExcelWriter('spotTest.xls', engine="openpyxl") as writer:
+    price_data.to_excel(writer, sheet_name="priceData")
+    index_data.to_excel(writer, sheet_name="indexData")
+    price_data_sofi.to_excel(writer, sheet_name="sofi")
+    index_data_sofi.to_excel(writer, sheet_name="indexSofi")
+    price_6mma.to_excel(writer, sheet_name="6mma")
+    index_6mma.to_excel(writer, sheet_name="index6mma")
+    ratio_6mma.to_excel(writer, sheet_name="ratio6mma")
+    
+
 
 
 
