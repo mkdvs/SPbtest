@@ -62,9 +62,33 @@ class CustomData(bt.feeds.PandasData):
         ('openinterest', None),
     )
 
+class testStrategy(bt.Strategy):
+    def __init__(self):
+        pass
+    def next(self):
+        pass
+
+class testclose(bt.Strategy):
+    def __init__(self):
+        pass
+    def next(self):
+        dataclose = self.datas[0].close[0]
+        print(dataclose)
+
+class testLog(bt.Strategy):
+    def __init__(self):
+        self.dataclose = self.datas[1].close
+    def log(self,txt):
+        dt = self.datas[1].datetime.datetime()
+        print(f'{dt}  |  {txt}')
+    def next(self):
+        x = self.dataclose[0]
+        self.log(txt=x)
+
 
 
 cerebro = bt.Cerebro()
+cerebro.broker.set_cash(100000)
 
 
 for ticker in price_data.columns:
@@ -80,9 +104,9 @@ for ticker in price_data.columns:
     data = CustomData(dataname=stock_data)
     cerebro.adddata(data, name=ticker)
 
+cerebro.addstrategy(testLog)
 
 
-cerebro.broker.set_cash(100000)
 cerebro.run()
 
 #cerebro.plot()
