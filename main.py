@@ -16,10 +16,21 @@ index_data_sofi.columns = ['indexsofi']
 index_data_sofi = index_data_sofi.bfill()
 
 # calculate changes in stock prices (priceData sheet)
-price_data_sofi = np.log(index_data / index_data.shift(1))
+price_data_sofi = np.log(price_data / price_data.shift(1))
 price_data_sofi = price_data_sofi.bfill()
 
-print(index_data_sofi)
+# now need 6 month moving average of index and each stock to begin building our indicator....I think?
+
+index_6mma = index_data_sofi.rolling(window=6).mean()
+price_6mma = price_data_sofi.rolling(window=6).mean()
+
+# Divide each column in price_6mma by the single column in index_6mma
+# The division will automatically broadcast across the columns
+ratio_6mma = price_6mma.divide(index_6mma['indexsofi'], axis=0)
+# drop first 5 rows as they will always be NaN due to rolling mean above
+ratio_6mma = ratio_6mma.iloc[5:]
+
+print(ratio_6mma)
 
 
 
