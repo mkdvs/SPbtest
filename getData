@@ -48,7 +48,9 @@ def replace_large_jumps(series):
 
 index_values = get_index_data()
 index_values = index_values.to_frame()
-index_values.index = index_values.index.strftime('%m-%d-%Y')
+
+#causing problems with btrader
+#index_values.index = index_values.index.strftime('%m-%d-%Y')
 
 
 ticker = get_wiki_tickers()
@@ -59,7 +61,8 @@ my_price_data.ffill(inplace=True)
 # Backward fill to fill any remaining NaN values at the beginning of the data
 my_price_data.bfill(inplace=True)
 # reformat date of date index column
-my_price_data.index = my_price_data.index.strftime('%m-%d-%Y')
+# causing problems with dtrader
+#my_price_data.index = my_price_data.index.strftime('%m-%d-%Y')
 
 # Fix price anomolies
 my_price_data = my_price_data.apply(replace_large_jumps, axis=0)
