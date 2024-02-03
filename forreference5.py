@@ -26,17 +26,17 @@ class TestStrategy(bt.Strategy):
     def __init__(self):
         # Keep a reference to the "close" line in the data[0] dataseries
         self.dataclose = self.datas[0].close
-        stock_ma1 = bt.ind.SMA(self.dataclose, period=120)
-        #stock_ma2 = bt.ind.SMA(self.dataclose, period=6)
+        stock_ma1 = bt.ind.SMA(self.dataclose, period=6)
+        stock_ma2 = bt.ind.SMA(self.dataclose, period=6)
         # Use line delay notation (-x) to get a ref to the -1 point
-        self.ma1_pct = stock_ma1 / stock_ma1(-120) -1  # same as (y2-y1)/y1 this is % change of 6mma of the stock
+        self.ma1_pct = stock_ma1 / stock_ma1(-1) -1  # same as (y2-y1)/y1 this is % change of 6mma of the stock
         #ma2_pct = stock_ma2 / stock_ma2(-1) - 1.0  # The ma2 percentage part
 
 
-        # To keep track of pending orders and buy price/commission
+
+
+        # To keep track of pending orders
         self.order = None
-        self.buyprice = None
-        self.buycomm = None
 
     def notify_order(self, order):
         if order.status in [order.Submitted, order.Accepted]:
@@ -47,37 +47,22 @@ class TestStrategy(bt.Strategy):
         # Attention: broker could reject order if not enough cash
         if order.status in [order.Completed]:
             if order.isbuy():
-                self.log(
-                    'BUY EXECUTED, Price: %.2f, Cost: %.2f, Comm %.2f' %
-                    (order.executed.price,
-                     order.executed.value,
-                     order.executed.comm))
-
-                self.buyprice = order.executed.price
-                self.buycomm = order.executed.comm
-            else:  # Sell
-                self.log('SELL EXECUTED, Price: %.2f, Cost: %.2f, Comm %.2f' %
-                         (order.executed.price,
-                          order.executed.value,
-                          order.executed.comm))
+                self.log('BUY EXECUTED, %.2f' % order.executed.price)
+            elif order.issell():
+                self.log('SELL EXECUTED, %.2f' % order.executed.price)
 
             self.bar_executed = len(self)
 
         elif order.status in [order.Canceled, order.Margin, order.Rejected]:
             self.log('Order Canceled/Margin/Rejected')
 
+        # Write down: no pending order
         self.order = None
-
-    def notify_trade(self, trade):
-        if not trade.isclosed:
-            return
-
-        self.log('OPERATION PROFIT, GROSS %.2f, NET %.2f' %
-                 (trade.pnl, trade.pnlcomm))
 
     def next(self):
         # Simply log the closing price of the series from the reference
-        self.log('Close, %.2f' % self.dataclose[0])
+        #self.log('Close, %.2f' % self.dataclose[0])
+        self.log(self.ma1_pct[0])
 
         # Check if an order is pending ... if yes, we cannot send a 2nd one
         if self.order:
@@ -86,7 +71,7 @@ class TestStrategy(bt.Strategy):
         # Check if we are in the market
         if not self.position:
 
-           
+            
             if self.ma1_pct[0] < 0:
                 # previous close less than the previous close
 
@@ -95,18 +80,15 @@ class TestStrategy(bt.Strategy):
 
                 # Keep track of the created order to avoid a 2nd order
                 self.order = self.buy()
+            else:
 
-        else:
+                # Already in the market ... we might sell
+                if len(self) >= (self.bar_executed + 5):
+                    # SELL, SELL, SELL!!! (with all possible default parameters)
+                    self.log('SELL CREATE, %.2f' % self.dataclose[0])
 
-            # Already in the market ... we might sell
-            if len(self) >= (self.bar_executed + 5):
-                # SELL, SELL, SELL!!! (with all possible default parameters)
-                self.log('SELL CREATE, %.2f' % self.dataclose[0])
-
-                # Keep track of the created order to avoid a 2nd order
-                self.order = self.sell()
-
-
+                    # Keep track of the created order to avoid a 2nd order
+                    self.order = self.sell()
 
 
 
