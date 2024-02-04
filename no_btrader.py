@@ -2,6 +2,7 @@
 
 import pandas as pd
 import yfinance as yf
+import numpy as np
 
 
 stock_data = pd.read_excel('stock_data_notranspose-2024-02-03.xlsx', index_col='Date', sheet_name='priceData')
@@ -10,6 +11,9 @@ stock_data = stock_data.shift(1)
 stock_data = stock_data.dropna()
 stock_data = stock_data.bfill()
 stock_data = stock_data.ffill()
+stock_data = stock_data.astype(float)
+
+print(stock_data.info())
 # Calculate daily returns (pctchange)
 return_df = stock_data.pct_change()
 return_df = return_df.dropna()
@@ -22,24 +26,32 @@ return_df = return_df.dropna()
 profits = [] # keep track of profits
 in_position = False # keep track of whether holding this stock or not
 
+priceReturn_df = stock_data.join(return_df, lsuffix="_price", rsuffix="_sofi")
 
-###########  HAVE TO GET PRICES FROM STOCK_DATA TO CALCULATE PROFIT.  WE ARE ITERATING OVER RETURNS!!
-for index, row in return_df.iterrows():
-    if not in_position and row.A > 0:
-        buyprice = row.A
+print(priceReturn_df)
+
+
+
+#for index, row in priceReturn_df.iterrows():
+   
+'''
+    if not in_position and row[A_sofi] > .14:
+        buyprice = A_price
         in_position = True
         trailing_stop = buyprice * .90
     if in_position:
-        if row.A * .90 >= trailing_stop:
-            trailing_stop = row.A
-        if row.A <= trailing_stop:
-            sellprice = row.A
-            print(sellprice)
-            profit = (sellprice-buyprice)/buyprice    
+    
+        if row.A_price * .90 >= trailing_stop:
+            trailing_stop = A_price
+        if row.A_price <= trailing_stop:
+            sellprice = A_price
+            profit = (sellprice-buyprice)/buyprice
+            #print(f'Buy is: {buyprice}   | Sell is:  {sellprice}  Profit is: {profit}' ) 
             profits.append(profit)
             in_position = False
-
-#print(profits)
+        
+'''
+print(profits)
 
 
 
