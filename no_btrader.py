@@ -23,12 +23,24 @@ profits = [] # keep track of profits
 in_position = False # keep track of whether holding this stock or not
 
 
-
+###########  HAVE TO GET PRICES FROM STOCK_DATA TO CALCULATE PROFIT.  WE ARE ITERATING OVER RETURNS!!
 for index, row in return_df.iterrows():
-    if not in_position and row.A > .10:
+    if not in_position and row.A > 0:
         buyprice = row.A
-        #in_position = True
-        print(buyprice)
+        in_position = True
+        trailing_stop = buyprice * .90
+    if in_position:
+        if row.A * .90 >= trailing_stop:
+            trailing_stop = row.A
+        if row.A <= trailing_stop:
+            sellprice = row.A
+            print(sellprice)
+            profit = (sellprice-buyprice)/buyprice    
+            profits.append(profit)
+            in_position = False
+
+#print(profits)
+
 
 
 
